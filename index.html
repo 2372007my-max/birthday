@@ -6,7 +6,6 @@
 <title>عيد ميلاد محمد 🎂</title>
 
 <style>
-/* عام */
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
   font-family:Segoe UI, sans-serif;
@@ -14,6 +13,18 @@ body{
   color:white;
   text-align:center;
   overflow-x:hidden;
+  position:relative;
+}
+
+/* النجوم */
+#stars{
+  position:fixed;
+  top:0;left:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  z-index:0;
+  background:black;
 }
 
 /* شاشة تحميل */
@@ -39,7 +50,7 @@ body{
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* الصفحات */
-.page{display:none;min-height:100vh;padding:5vh 5vw;}
+.page{display:none;min-height:100vh;padding:5vh 5vw;position:relative;z-index:1;}
 .active{display:block;}
 .card{
   background:rgba(255,255,255,.08);
@@ -103,6 +114,8 @@ input{
   max-height:80px;
   border-radius:50%;
   animation:float 8s linear infinite;
+  cursor:pointer;
+  z-index:2;
 }
 @keyframes float{to{transform:translateY(-120vh);}}
 
@@ -136,6 +149,7 @@ input{
   width:100%;
   height:100%;
   pointer-events:none;
+  z-index:1;
 }
 
 /* زر تشغيل/إيقاف موسيقى */
@@ -148,6 +162,9 @@ input{
 </head>
 
 <body>
+
+<!-- النجوم -->
+<canvas id="stars"></canvas>
 
 <!-- شاشة تحميل -->
 <div id="loader">
@@ -194,6 +211,7 @@ input{
 
   <audio id="flipSound" src="flip.mp3" preload="auto"></audio>
   <audio id="birthdayMusic" src="happy_birthday.mp3" preload="auto"></audio>
+  <audio id="balloonSound" src="balloon.mp3" preload="auto"></audio>
   <canvas id="fireworks"></canvas>
 </div>
 
@@ -203,6 +221,8 @@ const password="22/2/2007";
 /* شاشة تحميل */
 window.onload=function(){
   setTimeout(()=>{document.getElementById("loader").style.display="none";},2000);
+  initStars();
+  createBalloons();
 }
 
 /* تسجيل الدخول */
@@ -219,7 +239,6 @@ function openGift(){
   switchPage("welcome","gift");
   typeMessage();
   startSlideshow();
-  // تشغيل الموسيقى
   const music=document.getElementById("birthdayMusic");
   music.currentTime=0;
   music.play();
@@ -272,6 +291,7 @@ function celebrate(){
     b.style.left=Math.random()*100+"%";
     b.style.background=`hsl(${Math.random()*360},70%,60%)`;
     b.style.animationDuration=(5+Math.random()*5)+"s";
+    b.onclick = ()=>{document.getElementById("balloonSound").play(); b.remove();};
     document.body.appendChild(b);
   }
 }
@@ -305,15 +325,13 @@ const canvas=document.getElementById("fireworks");
 const ctx=canvas.getContext("2d");
 canvas.width=window.innerWidth;
 canvas.height=window.innerHeight;
-
 function firework(){
   let x=Math.random()*canvas.width;
   let y=Math.random()*canvas.height/2;
   for(let i=0;i<40;i++){
     let angle=Math.random()*Math.PI*2;
     let speed=Math.random()*4;
-    let px=x;
-    let py=y;
+    let px=x; let py=y;
     let dx=Math.cos(angle)*speed;
     let dy=Math.sin(angle)*speed;
     let life=30;
@@ -328,12 +346,56 @@ function firework(){
   }
 }
 
-/* إعادة ضبط حجم canvas عند تغيير حجم الشاشة */
+/* النجوم */
+const starsCanvas=document.getElementById("stars");
+const sCtx=starsCanvas.getContext("2d");
+starsCanvas.width=window.innerWidth;
+starsCanvas.height=window.innerHeight;
+const stars=[];
+for(let i=0;i<100;i++){
+  stars.push({x:Math.random()*starsCanvas.width, y:Math.random()*starsCanvas.height, r:Math.random()*1.5+0.5, dx:(Math.random()-0.5)/2, dy:(Math.random()-0.5)/2});
+}
+function initStars(){
+  function drawStars(){
+    sCtx.clearRect(0,0,starsCanvas.width,starsCanvas.height);
+    stars.forEach(st=>{
+      sCtx.fillStyle="white";
+      sCtx.beginPath();
+      sCtx.arc(st.x,st.y,st.r,0,Math.PI*2);
+      sCtx.fill();
+      st.x+=st.dx; st.y+=st.dy;
+      if(st.x<0) st.x=starsCanvas.width;
+      if(st.x>starsCanvas.width) st.x=0;
+      if(st.y<0) st.y=starsCanvas.height;
+      if(st.y>starsCanvas.height) st.y=0;
+    });
+    requestAnimationFrame(drawStars);
+  }
+  drawStars();
+}
+
+/* بلالين مستمرة + صوت عند الضغط */
+function createBalloons(){
+  setInterval(()=>{
+    let b=document.createElement("div");
+    b.className="balloon";
+    b.style.left=Math.random()*90+"%";
+    b.style.background=`hsl(${Math.random()*360},70%,60%)`;
+    b.style.animationDuration=(5+Math.random()*5)+"s";
+    b.onclick=()=>{document.getElementById("balloonSound").play(); b.remove();};
+    document.body.appendChild(b);
+    setTimeout(()=>{if(b.parentNode)b.remove();},10000);
+  },1500);
+}
+
+/* إعادة ضبط canvas عند تغيير حجم الشاشة */
 window.addEventListener('resize',()=>{
   canvas.width=window.innerWidth;
   canvas.height=window.innerHeight;
+  starsCanvas.width=window.innerWidth;
+  starsCanvas.height=window.innerHeight;
 });
 </script>
 
 </body>
-  </html>
+</html>
